@@ -1,0 +1,781 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Multifoco PDV — Pedido &amp; Estoque em Loja</title>
+<style>
+  :root{
+    --bg:#eef2f7;
+    --card:#ffffff;
+    --teal:#145374;
+    --teal-dark:#0d3b54;
+    --teal-light:#e3edf3;
+    --border:#dbe3ea;
+    --text:#1f2a33;
+    --muted:#6b7785;
+    --accent:#1c7c74;
+    --danger:#c0392b;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+  }
+  .page{
+    max-width:1400px;
+    margin:0 auto;
+    padding:20px;
+  }
+  .topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .back{
+    color:var(--teal);
+    font-weight:600;
+    text-decoration:none;
+    display:flex;
+    align-items:center;
+    gap:4px;
+  }
+  .brand-group{
+    display:flex;
+    align-items:center;
+    gap:16px;
+  }
+  .brand{
+    font-weight:800;
+    font-size:17px;
+    letter-spacing:.2px;
+    color:var(--teal-dark);
+  }
+  .session-badge{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:8px 14px;
+    font-size:13px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .session-badge b{color:var(--teal-dark);}
+  .session-badge button{
+    border:none;
+    background:none;
+    color:var(--teal);
+    font-size:12px;
+    cursor:pointer;
+    text-decoration:underline;
+  }
+  .layout{
+    display:grid;
+    grid-template-columns:1fr 340px;
+    gap:20px;
+    align-items:start;
+  }
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr;}
+  }
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    border:1px solid var(--border);
+    padding:16px;
+  }
+  .filters{
+    display:flex;
+    gap:10px;
+    margin-bottom:14px;
+    flex-wrap:wrap;
+  }
+  .filters input[type=text], .filters select{
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    font-size:14px;
+  }
+  .filters input[type=text]{flex:1;min-width:220px;}
+  .filters select{min-width:200px;}
+  .table-wrap{
+    overflow-x:auto;
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+  }
+  table{
+    border-collapse:collapse;
+    width:100%;
+    min-width:820px;
+    font-size:13.5px;
+  }
+  thead th{
+    background:var(--teal-light);
+    color:var(--teal-dark);
+    text-align:left;
+    padding:10px 12px;
+    font-weight:700;
+    white-space:nowrap;
+    position:sticky;
+    top:0;
+  }
+  tbody td{
+    padding:10px 12px;
+    border-top:1px solid var(--border);
+    vertical-align:middle;
+  }
+  tbody tr:hover{background:#fafcfe;}
+  .sku-name{font-weight:600;}
+  .sku-code{color:var(--muted);font-size:12px;}
+  .lab-tag{
+    display:inline-block;
+    margin-top:2px;
+    font-size:11px;
+    color:var(--accent);
+    background:#e7f3f1;
+    padding:1px 6px;
+    border-radius:6px;
+  }
+  .stepper{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .stepper button{
+    width:26px;height:26px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:var(--teal-light);
+    color:var(--teal-dark);
+    font-weight:700;
+    cursor:pointer;
+    line-height:1;
+  }
+  .stepper button:hover{background:var(--teal);color:#fff;}
+  .stepper input{
+    width:52px;
+    text-align:center;
+    padding:5px 2px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    font-size:13px;
+  }
+  .clear-btn{
+    width:22px;height:22px;
+    border-radius:50%;
+    border:1px solid var(--border);
+    background:#fff;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1;
+    cursor:pointer;
+    padding:0;
+  }
+  .clear-btn:hover{background:#fdecea;border-color:#e6a29a;color:var(--danger);}
+  .add-btn{
+    width:30px;height:30px;
+    border-radius:8px;
+    border:none;
+    background:var(--teal);
+    color:#fff;
+    font-size:16px;
+    cursor:pointer;
+  }
+  .add-btn:hover{background:var(--teal-dark);}
+  .empty-dash{color:var(--muted);}
+  .obs-btn{
+    border:1px solid var(--border);
+    background:#fff;
+    border-radius:8px;
+    padding:6px 10px;
+    font-size:12.5px;
+    cursor:pointer;
+    color:var(--teal-dark);
+    white-space:nowrap;
+  }
+  .obs-btn.has-obs{
+    background:#fff4e5;
+    border-color:#f0c078;
+    color:#8a5a00;
+    font-weight:600;
+  }
+  .price{font-weight:600;}
+  tfoot td{
+    padding:10px 12px;
+    font-weight:700;
+    border-top:2px solid var(--border);
+    color:var(--teal-dark);
+  }
+  /* Cart panel */
+  .cart-title{font-size:18px;font-weight:700;margin:0 0 4px;}
+  .cart-sub{color:var(--muted);font-size:13px;margin:0 0 14px;}
+  .cart-empty{
+    display:flex;flex-direction:column;align-items:center;
+    color:var(--muted);
+    padding:30px 10px;
+    text-align:center;
+    font-size:13.5px;
+  }
+  .cart-list{list-style:none;margin:0;padding:0;max-height:340px;overflow-y:auto;}
+  .cart-list li{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:8px 0;border-bottom:1px solid var(--border);
+    font-size:13px;
+  }
+  .cart-list li .qty{color:var(--teal-dark);font-weight:700;}
+  .cart-total{
+    display:flex;justify-content:space-between;
+    margin:14px 0;padding-top:10px;border-top:1px solid var(--border);
+    font-size:14px;
+  }
+  .btn-primary{
+    width:100%;
+    background:var(--teal);
+    color:#fff;
+    border:none;
+    padding:12px;
+    border-radius:8px;
+    font-size:14.5px;
+    font-weight:700;
+    cursor:pointer;
+    margin-bottom:8px;
+  }
+  .btn-primary:hover{background:var(--teal-dark);}
+  .btn-secondary{
+    width:100%;
+    background:#fff;
+    color:var(--teal-dark);
+    border:1px solid var(--teal);
+    padding:11px;
+    border-radius:8px;
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+    margin-bottom:8px;
+  }
+  .btn-secondary:hover{background:var(--teal-light);}
+  .btn-link{
+    width:100%;
+    background:none;
+    border:none;
+    color:var(--muted);
+    text-align:center;
+    font-size:12.5px;
+    cursor:pointer;
+    text-decoration:underline;
+  }
+  .note{
+    font-size:12px;color:var(--muted);
+    background:var(--teal-light);
+    border-radius:8px;
+    padding:10px;
+    margin-top:12px;
+  }
+  /* Modal */
+  .overlay{
+    position:fixed;inset:0;background:rgba(15,30,40,.45);
+    display:flex;align-items:center;justify-content:center;
+    z-index:50;padding:16px;
+  }
+  .hidden{display:none;}
+  .modal{
+    background:#fff;border-radius:var(--radius);
+    width:100%;max-width:420px;
+    padding:22px;
+  }
+  .modal.wide{max-width:720px;}
+  .modal h3{margin:0 0 4px;font-size:18px;color:var(--teal-dark);}
+  .modal p.hint{margin:0 0 16px;color:var(--muted);font-size:13px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px;color:var(--text);}
+  .field input, .field textarea{
+    width:100%;padding:9px 10px;border-radius:8px;border:1px solid var(--border);font-size:14px;
+  }
+  .modal-actions{display:flex;gap:10px;margin-top:16px;}
+  .modal-actions button{flex:1;}
+  .btn-ghost{
+    background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;color:var(--muted);
+  }
+  .sheet-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .sheet-table th, .sheet-table td{border:1px solid var(--border);padding:6px 8px;text-align:left;white-space:nowrap;}
+  .sheet-table th{background:var(--teal-light);color:var(--teal-dark);}
+  .sheet-wrap{overflow-x:auto;max-height:320px;}
+  .pill{
+    display:inline-block;font-size:11px;background:#e7f3f1;color:var(--accent);
+    padding:2px 7px;border-radius:6px;margin-left:6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="topbar">
+    <div class="brand-group">
+      <a class="back" href="#">‹ Voltar</a>
+      <span class="brand">Multifoco PDV</span>
+    </div>
+    <div class="session-badge" id="sessionBadge">
+      Nenhum atendimento iniciado
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT: product list -->
+    <div class="card">
+      <div class="filters">
+        <input type="text" id="searchInput" placeholder="Buscar por SKU, EAN ou nome" oninput="renderTable()" />
+        <select id="labFilter" onchange="renderTable()">
+          <option value="Todos">Todos os laboratórios</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>SKU / Descrição</th>
+              <th>Estoque na Loja</th>
+              <th>Preço</th>
+              <th>Pedido do Cliente</th>
+              <th>Observação</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+          <tfoot>
+            <tr>
+              <td>Total</td>
+              <td id="footEstoque">0</td>
+              <td></td>
+              <td id="footPedido">0</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- RIGHT: cart + actions -->
+    <div class="card">
+      <p class="cart-title">Seleção de Produtos</p>
+      <p class="cart-sub">Baseado apenas no que o cliente pediu.</p>
+
+      <div id="cartArea"></div>
+
+      <div class="cart-total">
+        <span>Total do pedido</span>
+        <b id="cartTotalText">0 unidades · 0 SKUs</b>
+      </div>
+
+      <button class="btn-primary" onclick="exportPedido()">Exportar relatório de pedido do cliente</button>
+      <button class="btn-secondary" onclick="exportEstoque()">Exportar relatório de estoque na loja</button>
+      <button class="btn-secondary" onclick="finalizeAttendance()">Finalizar pedido (começar um novo)</button>
+      <button class="btn-link" onclick="openSheetPreview()">Ver planilha do gestor (simulação)</button>
+
+      <div class="note">
+        Protótipo com dados fictícios — os campos e o layout final dos relatórios serão ajustados quando a tabela modelo de produtos for enviada.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Session modal -->
+<div class="overlay" id="sessionOverlay">
+  <div class="modal">
+    <h3>Dados do atendimento</h3>
+    <p class="hint">Preencha antes de começar (campos provisórios — serão ajustados conforme o modelo enviado).</p>
+    <div class="field">
+      <label>Nome da Loja</label>
+      <input type="text" id="inLoja" placeholder="Ex: Farmácia Central" />
+    </div>
+    <div class="field">
+      <label>CNPJ (opcional)</label>
+      <input type="text" id="inCnpj" placeholder="Ex: 12.345.678/0001-99" />
+    </div>
+    <div class="field">
+      <label>Vendedor</label>
+      <input type="text" id="inVendedor" placeholder="Seu nome" />
+    </div>
+    <div class="field">
+      <label>Data</label>
+      <input type="date" id="inData" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="startSession()">Começar atendimento</button>
+    </div>
+  </div>
+</div>
+
+<!-- Observation modal -->
+<div class="overlay hidden" id="obsOverlay">
+  <div class="modal">
+    <h3>Registrar preço da concorrência</h3>
+    <p class="hint" id="obsProdName">Produto</p>
+    <div class="field">
+      <label>Nome do laboratório concorrente</label>
+      <input type="text" id="obsLab" placeholder="Ex: EMS" />
+    </div>
+    <div class="field">
+      <label>Preço informado pelo cliente (R$)</label>
+      <input type="number" id="obsPrice" step="0.01" min="0" placeholder="Ex: 12.50" />
+    </div>
+    <div class="field">
+      <label>Observação (opcional)</label>
+      <textarea id="obsNote" rows="2" placeholder="Ex: cliente mostrou nota fiscal"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeObsModal()">Cancelar</button>
+      <button class="btn-primary" onclick="saveObservation()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Manager sheet preview modal -->
+<div class="overlay hidden" id="sheetOverlay">
+  <div class="modal wide">
+    <h3>Planilha do gestor (simulação)</h3>
+    <p class="hint">Cada novo laboratório concorrente informado vira uma coluna nova automaticamente.</p>
+    <div class="sheet-wrap">
+      <table class="sheet-table" id="sheetTable"></table>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeSheetPreview()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Mock product data (placeholder until real table arrives) ---------- */
+const PRODUCTS = [
+  {sku:"12854", name:"(12H) CLOR.BUPROP. 150 MG C/30 COMP. REV. LIB. PROLONGADA", lab:"GERMED GENERICOS", price:1.00},
+  {sku:"12217", name:"ACEBROFILINA 50MG/5ML XPE C/120ML", lab:"GERMED GENERICOS", price:1.00},
+  {sku:"12448", name:"ACETILCISTEINA 600MG 16 ENV 5G", lab:"GERMED GENERICOS", price:1.00},
+  {sku:"12449", name:"ACETILCISTEINA XPEAD 40MG/ML 120ML", lab:"GERMED GENERICOS", price:1.00},
+  {sku:"12511", name:"ACETILCISTEINA", lab:"GERMED GENERICOS", price:1.00},
+  {sku:"20031", name:"DIPIRONA SODICA 500MG C/10 COMP.", lab:"EMS", price:1.00},
+  {sku:"20087", name:"LOSARTANA POTASSICA 50MG C/30 COMP.", lab:"EMS", price:1.00},
+  {sku:"20142", name:"OMEPRAZOL 20MG C/28 CAPS.", lab:"EMS", price:1.00},
+  {sku:"31009", name:"AMOXICILINA 500MG C/21 CAPS.", lab:"MEDLEY", price:1.00},
+  {sku:"31077", name:"PARACETAMOL 750MG C/20 COMP.", lab:"MEDLEY", price:1.00},
+  {sku:"31145", name:"LORATADINA 10MG C/12 COMP.", lab:"MEDLEY", price:1.00},
+  {sku:"31210", name:"SINVASTATINA 20MG C/30 COMP.", lab:"MEDLEY", price:1.00},
+];
+
+/* ---------- App state (in-memory only) ---------- */
+const state = {
+  session: null, // {loja, vendedor, data}
+  estoque: {},   // sku -> {touched:bool, value:number}
+  pedido: {},    // sku -> {touched:bool, value:number}
+  obs: {},       // sku -> [{lab, price, note, ts}]
+};
+PRODUCTS.forEach(p=>{
+  state.estoque[p.sku] = {touched:false, value:0};
+  state.pedido[p.sku]  = {touched:false, value:0};
+  state.obs[p.sku] = [];
+});
+
+/* ---------- Init ---------- */
+function init(){
+  const labs = [...new Set(PRODUCTS.map(p=>p.lab))];
+  const sel = document.getElementById('labFilter');
+  labs.forEach(l=>{
+    const o = document.createElement('option');
+    o.value = l; o.textContent = l;
+    sel.appendChild(o);
+  });
+  document.getElementById('inData').valueAsDate = new Date();
+  renderTable();
+  renderCart();
+}
+
+function startSession(){
+  const loja = document.getElementById('inLoja').value.trim();
+  const cnpj = document.getElementById('inCnpj').value.trim();
+  const vendedor = document.getElementById('inVendedor').value.trim();
+  const data = document.getElementById('inData').value;
+  if(!loja || !vendedor){
+    alert('Preencha ao menos o nome da loja e o vendedor.');
+    return;
+  }
+  state.session = {loja, cnpj, vendedor, data};
+  const cnpjPart = cnpj ? ` · CNPJ ${escapeHtml(cnpj)}` : '';
+  document.getElementById('sessionBadge').innerHTML =
+    `<b>${escapeHtml(loja)}</b>${cnpjPart} · ${escapeHtml(vendedor)} · ${data} <button onclick="reopenSession()">trocar</button>`;
+  document.getElementById('sessionOverlay').classList.add('hidden');
+  resetProductState();
+}
+function reopenSession(){
+  document.getElementById('sessionOverlay').classList.remove('hidden');
+}
+
+/* Limpa estoque/pedido/observações da tela (fica pronta para um novo atendimento) */
+function resetProductState(){
+  PRODUCTS.forEach(p=>{
+    state.estoque[p.sku] = {touched:false, value:0};
+    state.pedido[p.sku]  = {touched:false, value:0};
+    state.obs[p.sku] = [];
+  });
+  renderTable();
+  renderCart();
+}
+
+/* Botão "Finalizar pedido": encerra o atendimento atual do cliente e limpa a tela
+   para o próximo, mantendo a mesma loja/vendedor/data. */
+function finalizeAttendance(){
+  const ok = confirm('Finalizar este pedido vai limpar o estoque anotado, o pedido e as observações desta tela. Já exportou os relatórios necessários? Clique OK para finalizar e começar um novo pedido.');
+  if(!ok) return;
+  resetProductState();
+}
+
+/* ---------- Table rendering ---------- */
+function renderTable(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const lab = document.getElementById('labFilter').value;
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  let list = PRODUCTS.filter(p=>{
+    const matchesLab = (lab==='Todos') || p.lab===lab;
+    const matchesQ = !q || p.sku.toLowerCase().includes(q) || p.name.toLowerCase().includes(q);
+    return matchesLab && matchesQ;
+  });
+
+  list.forEach(p=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <div class="sku-name">${p.sku} — ${escapeHtml(p.name)}</div>
+        <span class="lab-tag">${escapeHtml(p.lab)}</span>
+      </td>
+      <td>${stepperHtml(p.sku,'estoque')}</td>
+      <td class="price">R$ ${p.price.toFixed(2).replace('.',',')}</td>
+      <td>${stepperHtml(p.sku,'pedido')}</td>
+      <td>${obsButtonHtml(p.sku)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  updateFooterTotals();
+}
+
+function stepperHtml(sku, kind){
+  const cell = state[kind][sku];
+  if(!cell.touched){
+    return `<button class="add-btn" onclick="touchCell('${sku}','${kind}')" title="Adicionar">+</button>`;
+  }
+  return `
+    <div class="stepper">
+      <button onclick="stepCell('${sku}','${kind}',-1)">−</button>
+      <input type="number" min="0" value="${cell.value}"
+        onchange="setCell('${sku}','${kind}', this.value)" />
+      <button onclick="stepCell('${sku}','${kind}',1)">+</button>
+      <button class="clear-btn" title="Remover anotação" onclick="clearCell('${sku}','${kind}')">×</button>
+    </div>
+  `;
+}
+
+function obsButtonHtml(sku){
+  const count = state.obs[sku].length;
+  if(count===0){
+    return `<button class="obs-btn" onclick="openObsModal('${sku}')">+ observação</button>`;
+  }
+  return `<button class="obs-btn has-obs" onclick="openObsModal('${sku}')">💬 ${count} registrada${count>1?'s':''}</button>`;
+}
+
+function touchCell(sku, kind){
+  state[kind][sku] = {touched:true, value: kind==='pedido' ? 1 : 0};
+  renderTable();
+  if(kind==='pedido') renderCart();
+}
+function stepCell(sku, kind, delta){
+  const cell = state[kind][sku];
+  cell.value = Math.max(0, cell.value + delta);
+  renderTable();
+  if(kind==='pedido') renderCart();
+}
+function setCell(sku, kind, rawVal){
+  let v = parseInt(rawVal,10);
+  if(isNaN(v) || v<0) v = 0;
+  state[kind][sku] = {touched:true, value:v};
+  renderTable();
+  if(kind==='pedido') renderCart();
+}
+function clearCell(sku, kind){
+  state[kind][sku] = {touched:false, value:0};
+  renderTable();
+  if(kind==='pedido') renderCart();
+}
+
+function updateFooterTotals(){
+  const totalEstoque = Object.values(state.estoque).filter(c=>c.touched).reduce((s,c)=>s+c.value,0);
+  const totalPedido = Object.values(state.pedido).filter(c=>c.touched).reduce((s,c)=>s+c.value,0);
+  document.getElementById('footEstoque').textContent = totalEstoque;
+  document.getElementById('footPedido').textContent = totalPedido;
+}
+
+/* ---------- Cart (right panel) — driven ONLY by "pedido do cliente" ---------- */
+function renderCart(){
+  const area = document.getElementById('cartArea');
+  const items = PRODUCTS
+    .map(p=>({p, qty: state.pedido[p.sku].touched ? state.pedido[p.sku].value : 0}))
+    .filter(x=>x.qty>0);
+
+  if(items.length===0){
+    area.innerHTML = `<div class="cart-empty">🛒<br/>Nenhum produto adicionado</div>`;
+  } else {
+    const lis = items.map(x=>`
+      <li>
+        <span>${x.p.sku} — ${escapeHtml(x.p.name).slice(0,34)}${x.p.name.length>34?'…':''}</span>
+        <span class="qty">${x.qty} un.</span>
+      </li>`).join('');
+    area.innerHTML = `<ul class="cart-list">${lis}</ul>`;
+  }
+
+  const totalUnits = items.reduce((s,x)=>s+x.qty,0);
+  document.getElementById('cartTotalText').textContent = `${totalUnits} unidades · ${items.length} SKUs`;
+}
+
+/* ---------- Observation modal ---------- */
+let currentObsSku = null;
+function openObsModal(sku){
+  currentObsSku = sku;
+  const p = PRODUCTS.find(x=>x.sku===sku);
+  document.getElementById('obsProdName').textContent = `${p.sku} — ${p.name}`;
+  document.getElementById('obsLab').value = '';
+  document.getElementById('obsPrice').value = '';
+  document.getElementById('obsNote').value = '';
+  document.getElementById('obsOverlay').classList.remove('hidden');
+}
+function closeObsModal(){
+  document.getElementById('obsOverlay').classList.add('hidden');
+  currentObsSku = null;
+}
+function saveObservation(){
+  const lab = document.getElementById('obsLab').value.trim();
+  const price = parseFloat(document.getElementById('obsPrice').value);
+  const note = document.getElementById('obsNote').value.trim();
+  if(!lab || isNaN(price)){
+    alert('Informe o laboratório concorrente e o preço.');
+    return;
+  }
+  state.obs[currentObsSku].push({lab, price, note, ts:new Date().toISOString()});
+  closeObsModal();
+  renderTable();
+}
+
+/* ---------- Manager sheet preview (dynamic competitor columns) ---------- */
+function openSheetPreview(){
+  const competitorLabs = [...new Set(
+    Object.values(state.obs).flat().map(o=>o.lab)
+  )];
+
+  const productsWithObs = PRODUCTS.filter(p=>state.obs[p.sku].length>0);
+
+  const table = document.getElementById('sheetTable');
+  if(productsWithObs.length===0){
+    table.innerHTML = `<tr><td style="padding:14px;color:#6b7785;">Nenhuma observação de concorrência registrada ainda. Registre uma pelo botão "+ observação" na tabela de produtos.</td></tr>`;
+  } else {
+    let head = `<tr><th>SKU</th><th>Nome do Produto</th><th>Preço de Tabela</th>` +
+      competitorLabs.map(l=>`<th>${escapeHtml(l)} <span class="pill">novo</span></th>`).join('') + `</tr>`;
+    let rows = productsWithObs.map(p=>{
+      let cells = competitorLabs.map(l=>{
+        const entries = state.obs[p.sku].filter(o=>o.lab===l);
+        if(entries.length===0) return `<td>–</td>`;
+        const latest = entries[entries.length-1];
+        return `<td>R$ ${latest.price.toFixed(2).replace('.',',')}</td>`;
+      }).join('');
+      return `<tr><td>${p.sku}</td><td>${escapeHtml(p.name)}</td><td>R$ ${p.price.toFixed(2).replace('.',',')}</td>${cells}</tr>`;
+    }).join('');
+    table.innerHTML = head + rows;
+  }
+  document.getElementById('sheetOverlay').classList.remove('hidden');
+}
+function closeSheetPreview(){
+  document.getElementById('sheetOverlay').classList.add('hidden');
+}
+
+/* ---------- Exports (CSV, functional mock) ---------- */
+function downloadCsv(filename, rows){
+  const csv = rows.map(r=>r.map(csvEscape).join(';')).join('\n');
+  const blob = new Blob(["﻿"+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function csvEscape(v){
+  v = String(v);
+  if(v.includes(';') || v.includes('"') || v.includes('\n')){
+    v = '"' + v.replace(/"/g,'""') + '"';
+  }
+  return v;
+}
+function sessionHeaderRows(){
+  const s = state.session || {loja:'-',cnpj:'',vendedor:'-',data:'-'};
+  return [
+    ['Loja', s.loja], ['CNPJ', s.cnpj || '-'], ['Vendedor', s.vendedor], ['Data', s.data], []
+  ];
+}
+
+/* Turns "Farmácia Central" + "12.345.678/0001-99" into "Farmacia_Central_12345678000199" */
+function slugify(text){
+  return String(text)
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // remove acentos
+    .replace(/[^a-zA-Z0-9]+/g,'_')
+    .replace(/^_+|_+$/g,'')
+    .replace(/_{2,}/g,'_');
+}
+function buildFileName(prefix){
+  const s = state.session || {};
+  const lojaPart = s.loja ? slugify(s.loja) : 'sem_loja';
+  const cnpjDigits = (s.cnpj || '').replace(/\D/g,'');
+  const cnpjPart = cnpjDigits ? `_${cnpjDigits}` : '';
+  return `${prefix}_${lojaPart}${cnpjPart}.csv`;
+}
+
+function exportEstoque(){
+  const rows = [...sessionHeaderRows(), ['SKU','Nome do Produto','Laboratório','Estoque Anotado (un.)']];
+  PRODUCTS.forEach(p=>{
+    const c = state.estoque[p.sku];
+    if(c.touched){
+      rows.push([p.sku, p.name, p.lab, c.value]);
+    }
+  });
+  if(rows.length <= sessionHeaderRows().length + 1){
+    alert('Nenhum item de estoque foi anotado ainda.');
+    return;
+  }
+  downloadCsv(buildFileName('relatorio_estoque_loja'), rows);
+}
+
+function exportPedido(){
+  const rows = [...sessionHeaderRows(), ['SKU','Nome do Produto','Laboratório','Preço','Quantidade Pedida']];
+  PRODUCTS.forEach(p=>{
+    const c = state.pedido[p.sku];
+    if(c.touched && c.value>0){
+      rows.push([p.sku, p.name, p.lab, p.price.toFixed(2).replace('.',','), c.value]);
+    }
+  });
+  if(rows.length <= sessionHeaderRows().length + 1){
+    alert('O cliente ainda não pediu nenhum item.');
+    return;
+  }
+  downloadCsv(buildFileName('relatorio_pedido_cliente'), rows);
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+init();
+</script>
+</body>
+</html>
